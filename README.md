@@ -46,7 +46,7 @@ If you'd rather run the Python script directly:
 
 ## Building the exe
 
-Releases are built automatically by GitHub Actions on Windows (see `.github/workflows/release.yml`). Every push to `main` builds and tests the app. Publishing a new release on GitHub (for example `v1.0.1`) builds the app, bundles the latest imessage-exporter, runs a self test, and attaches the zip to that release. Bump `APP_VERSION` in `imessage_export_gui.py` to match.
+Releases are built automatically by GitHub Actions on Windows (see `.github/workflows/release.yml`). Every push to `main` builds the app, bundles the latest imessage-exporter, and runs a self test. To publish a new version, bump `APP_VERSION` in `imessage_export_gui.py` (for example to `1.0.1`) and push: the build creates release `v1.0.1` with the zip attached.
 
 To build locally on Windows with Python 3.13:
 

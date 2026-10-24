@@ -33,16 +33,40 @@ jobs:
           name: iMessage-Export-Windows-x64
           path: dist/iMessage-Export-Windows-x64.zip
 
+      # A push to main publishes a release when APP_VERSION has no release yet.
+      # Publishing a release by hand on GitHub also attaches a fresh build to it.
+      - name: Decide whether to publish
+        id: decide
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ("${{ github.event_name }}" -eq "release") {
+            "tag=${{ github.event.release.tag_name }}" >> $env:GITHUB_OUTPUT
+            "publish=true" >> $env:GITHUB_OUTPUT
+          } else {
+            $tag = "v${{ steps.build.outputs.app_version }}"
+            gh release view $tag --repo ${{ github.repository }} *> $null
+            $missing = ($LASTEXITCODE -ne 0)
+            "tag=$tag" >> $env:GITHUB_OUTPUT
+            "publish=$(if ($missing -and '${{ github.ref }}' -eq 'refs/heads/main') { 'true' } else { 'false' })" >> $env:GITHUB_OUTPUT
+            Write-Host "Release $tag missing: $missing"
+          }
+          exit 0
+
       - name: Publish release
-        if: github.event_name == 'release'
+        if: steps.decide.outputs.publish == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.release.tag_name }}
+          tag_name: ${{ steps.decide.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: iMessage Export ${{ steps.decide.outputs.tag }}
+          make_latest: true
           files: dist/iMessage-Export-Windows-x64.zip
           body: |
             ## Download
 
-            **[iMessage-Export-Windows-x64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/iMessage-Export-Windows-x64.zip)**
+            **[iMessage-Export-Windows-x64.zip](https://github.com/${{ github.repository }}/releases/download/${{ steps.decide.outputs.tag }}/iMessage-Export-Windows-x64.zip)**
 
             1. Unzip it anywhere (Documents is fine).
             2. Open the `iMessage Export` folder and double-click **iMessage Export.exe**.

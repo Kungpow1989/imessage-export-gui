@@ -63,4 +63,9 @@ if (Test-Path $ZipPath) { Remove-Item $ZipPath }
 Compress-Archive -Path $Dist -DestinationPath $ZipPath -CompressionLevel Optimal
 $size = [math]::Round((Get-Item $ZipPath).Length / 1MB, 1)
 Write-Host "Built $ZipPath ($size MB)"
-if ($env:GITHUB_OUTPUT) { "exporter_version=$ExporterTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8 }
+$AppVersion = (Select-String -Path imessage_export_gui.py -Pattern '^APP_VERSION = "(.+)"').Matches[0].Groups[1].Value
+Write-Host "App version $AppVersion"
+if ($env:GITHUB_OUTPUT) {
+    "exporter_version=$ExporterTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+    "app_version=$AppVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+}
