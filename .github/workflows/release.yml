@@ -1,0 +1,52 @@
+name: Build Windows exe
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Build, bundle imessage-exporter, self test, zip
+        id: build
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./build.ps1
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: iMessage-Export-Windows-x64
+          path: dist/iMessage-Export-Windows-x64.zip
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/iMessage-Export-Windows-x64.zip
+          body: |
+            ## Download
+
+            **[iMessage-Export-Windows-x64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iMessage-Export-Windows-x64.zip)**
+
+            1. Unzip it anywhere (Documents is fine).
+            2. Open the `iMessage Export` folder and double-click **iMessage Export.exe**.
+            3. If Windows shows "Windows protected your PC", click **More info**, then **Run anyway**. This appears because the app isn't code-signed.
+            4. Install the free **Apple Devices** app from the Microsoft Store if you don't have it or iTunes. It provides the USB driver for the iPhone.
+
+            See the [README](https://github.com/${{ github.repository }}#readme) for the full guide.
+
+            Includes imessage-exporter ${{ steps.build.outputs.exporter_version }} by Christopher Sardegna ([ReagentX/imessage-exporter](https://github.com/ReagentX/imessage-exporter)), GPL-3.0.
