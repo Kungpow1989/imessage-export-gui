@@ -3,7 +3,8 @@ name: Build Windows exe
 on:
   push:
     branches: [main]
-    tags: ["v*"]
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -33,14 +34,15 @@ jobs:
           path: dist/iMessage-Export-Windows-x64.zip
 
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event.release.tag_name }}
           files: dist/iMessage-Export-Windows-x64.zip
           body: |
             ## Download
 
-            **[iMessage-Export-Windows-x64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iMessage-Export-Windows-x64.zip)**
+            **[iMessage-Export-Windows-x64.zip](https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/iMessage-Export-Windows-x64.zip)**
 
             1. Unzip it anywhere (Documents is fine).
             2. Open the `iMessage Export` folder and double-click **iMessage Export.exe**.
